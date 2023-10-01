@@ -1,25 +1,31 @@
 import React, { useRef, useState } from "react";
 import { FormControl, Grid, TextField, InputLabel, Select, Box, MenuItem, Button, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText, Snackbar, Alert } from '@mui/material';
-import Employee from "../../model/Employee";
+import Contact from "../../model/Contact";
 import employeeConfig from "../../config/employee-config.json"
 import InputResult from "../../model/InputResult";
 import { StatusType } from "../../model/StatusType";
 type Props = {
-    submitFn: (empl: Employee) => Promise<InputResult>,
-    employeeUpdated?: Employee
+    submitFn: (empl: Contact) => Promise<InputResult>,
+    employeeUpdated?: Contact
 
 }
 const initialDate: any = 0;
 const initialGender: any = '';
-const initialEmployee: Employee = {
-    id: 0, birthDate: initialDate, name: '',department: '', salary: 0,
-     gender: initialGender
+const initialEmployee: Contact = {
+    id: 0, birthDate: initialDate, name: '', department: '', salary: 0,
+    gender: initialGender,
+    username: "",
+    roles: [],
+    passwordHash: "",
+    nickname: "",
+    blocked: 0,
+    avatar: ""
 };
 export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => {
     const { minYear, minSalary, maxYear, maxSalary, departments }
         = employeeConfig;
     const [employee, setEmployee] =
-        useState<Employee>(employeeUpdated || initialEmployee);
+        useState<Contact>(employeeUpdated || initialEmployee);
         const [errorMessage, setErrorMessage] = useState('');
     function handlerName(event: any) {
         const name = event.target.value;

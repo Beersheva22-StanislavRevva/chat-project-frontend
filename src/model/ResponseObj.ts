@@ -1,8 +1,8 @@
-import Employee from "./Employee"
+import Contact from "./Contact"
 
 type ResponseObj = {
    task:string,
-   employee:Employee,
+   employee:Contact,
    id?:string
 } 
 

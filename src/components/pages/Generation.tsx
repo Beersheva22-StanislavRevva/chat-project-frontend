@@ -1,8 +1,8 @@
 import { useDispatch } from "react-redux";
 import InputResult from "../../model/InputResult"
 import Input from "../common/Input"
-import { employeesService } from "../../config/service-config";
-import Employee from "../../model/Employee";
+import { contactsService } from "../../config/service-config";
+import Contact from "../../model/Contact";
 import CodePayload from "../../model/CodePayload";
 import CodeType from "../../model/CodeType";
 import { getRandomEmployee } from "../../util/random"
@@ -31,7 +31,7 @@ const Generation: React.FC = () => {
         for (let i = 0; i < amount; i++) {
             try {
                 await 
-                employeesService.addEmployee(getRandomEmployee(minSalary, maxSalary,
+                contactsService.addEmployee(getRandomEmployee(minSalary, maxSalary,
                     minYear, maxYear, departments));
                 count++;
             } catch (error: any) {

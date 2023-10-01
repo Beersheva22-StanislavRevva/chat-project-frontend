@@ -3,9 +3,9 @@ import CodePayload from "../model/CodePayload";
 import CodeType from "../model/CodeType";
 import { codeActions } from "../redux/slices/codeSlice";
 import { useEffect, useState } from "react";
-import Employee from "../model/Employee";
+import Contact from "../model/Contact";
 import { Subscription } from "rxjs";
-import { employeesService } from "../config/service-config";
+import { contactsService } from "../config/service-config";
 
 export function useDispatchCode() {
     const dispatch = useDispatch();
@@ -25,19 +25,19 @@ export function useDispatchCode() {
         dispatch(codeActions.set({ code, message: message || successMessage }))
     }
 }
-export function useSelectorEmployees() {
+export function useSelectorContacts() {
     const dispatch = useDispatchCode();
-    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [contacts, setContacts] = useState<Contact[]>([]);
     useEffect(() => {
 
-        const subscription: Subscription = employeesService.getEmployees()
+        const subscription: Subscription = contactsService.getContacts()
             .subscribe({
-                next(emplArray: Employee[] | string) {
+                next(emplArray: Contact[] | string) {
                     let errorMessage: string = '';
                     if (typeof emplArray === 'string') {
                         errorMessage = emplArray;
                     } else {
-                        setEmployees(emplArray.map(e => ({ ...e, birthDate: new Date(e.birthDate) })));
+                        setContacts(emplArray.map(e => ({ ...e, birthDate: new Date(e.birthDate) })));
                     }
                     dispatch(errorMessage, '');
 
@@ -45,5 +45,5 @@ export function useSelectorEmployees() {
             });
         return () => subscription.unsubscribe();
     }, []);
-    return employees;
+    return contacts;
 }

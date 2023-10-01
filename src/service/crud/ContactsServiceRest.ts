@@ -1,8 +1,7 @@
 import { Observable, Subscriber } from "rxjs";
-import Employee from "../../model/Employee";
-import { AUTH_DATA_JWT } from "./../auth/AuthServiceJwt";
-import EmployeesService from "./EmployeesService";
-
+import Contact from "../../model/Contact";
+import { AUTH_DATA_JWT } from "../auth/AuthServiceJwt";
+import EmployeesService from "./ContactsService";
 import ResponseObj from "../../model/ResponseObj";
 
 
@@ -22,7 +21,7 @@ function getHeaders(): HeadersInit {
     }
     return res;
 }
-async function fetchRequest(url: string, options: RequestInit, empl?: Employee): Promise<Response> {
+async function fetchRequest(url: string, options: RequestInit, empl?: Contact): Promise<Response> {
     options.headers = getHeaders();
     if (empl) {
         options.body = JSON.stringify(empl);
@@ -50,25 +49,37 @@ async function fetchRequest(url: string, options: RequestInit, empl?: Employee):
         throw responseText ? responseText : "Server is unavailable. Repeat later on";
     }
 }
-async function fetchAllEmployees(url: string):Promise< Employee[]|string> {
+async function fetchAllContacts(url: string):Promise< Contact[]|string> {
+    let activeContacts:string[] = await fetchActiveContacts(url+"contacts");
+    const response = await fetchRequest(url+"users", {});
+    let res = await response.json();
+    (res as Contact[]).forEach(el => {
+    activeContacts.includes(el.username) ? el.active = "online" :  el.active = "offline";
+    }
+    )
+    return res;
+}
+
+async function fetchActiveContacts(url: string):Promise<[]> {
     const response = await fetchRequest(url, {});
     return await response.json()
 }
 
 export default class EmployeesServiceRest implements EmployeesService {
-    private observable: Observable<Employee[] | string> | null = null;
-    private subscriber: Subscriber <string | Employee[] > | undefined;
+    private observable: Observable<Contact[] | string> | null = null;
+    private subscriber: Subscriber <string | Contact[] > | undefined;
     private urlService:string;
     private urlWebsocket:string;
     private webSocket: WebSocket | undefined;
-    private employees: Map <string, Employee>;
+    private employees: Map <string, Contact>;
+    private activeContacts:[] = [];
     constructor( baseUrl: string) { 
         this.urlService = `http://${baseUrl}`;
-        this.urlWebsocket = `ws://${baseUrl}/websocket`;
+        this.urlWebsocket = `ws://${baseUrl}/messages/websocket`;
         
-        this.employees = new Map <string, Employee>;
+        this.employees = new Map <string, Contact>;
     }
-    async updateEmployee(empl: Employee): Promise<Employee> {
+    async updateEmployee(empl: Contact): Promise<Contact> {
         const response = await fetchRequest(this.getUrlWithId(empl.id!),
             { method: 'PUT' }, empl);
             
@@ -80,10 +91,11 @@ export default class EmployeesServiceRest implements EmployeesService {
     }
     private subscriberNext(): void {
         
-        fetchAllEmployees(this.urlService).then(empl => {
-        (empl as Employee[]).forEach(e => this.employees.set(e.id, e));
-        //this.subscriber?.next(Array.from(this.employees.values()));
-        this.subscriber?.next(empl);
+        fetchAllContacts(this.urlService).then(cont => {
+            (cont as Contact[]).forEach(e => {
+                this.employees.set(e.id = e.username, e);
+            })
+            this.subscriber?.next(cont);
             })
         .catch(error => this.subscriber?.next(error));
     }
@@ -92,9 +104,9 @@ export default class EmployeesServiceRest implements EmployeesService {
                 method: 'DELETE',
             });
     }
-    getEmployees(): Observable<Employee[] | string> {
+    getContacts(): Observable<Contact[] | string> {
         if (!this.observable) {
-            this.observable = new Observable<Employee[] | string>(subscriber => {
+            this.observable = new Observable<Contact[] | string>(subscriber => {
                 this.subscriber = subscriber;
                 this.subscriberNext();
                this.connectWS();
@@ -114,7 +126,7 @@ export default class EmployeesServiceRest implements EmployeesService {
     private disconnectWS(): void {
        this.webSocket?.close();
     }  
-    async addEmployee(empl: Employee): Promise<Employee> {
+    async addEmployee(empl: Contact): Promise<Contact> {
         if (empl.id == 0) {
             delete empl.id;    
         }

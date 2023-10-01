@@ -1,6 +1,8 @@
 type LoginData = {
     email: string;
     password: string;
-    gogleFl?:boolean
+    nickname?: string;
+    avatar?: string;
+    gogleFl?: boolean
 }
 export default LoginData

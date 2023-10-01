@@ -10,8 +10,30 @@ function getUserData(data: any): UserData {
     return {email: jwtPayloadObj.sub, role: jwtPayloadObj.roles.includes("ADMIN") ? "admin": "user"};
 
 }
+function getSignUpData(data: any): UserData {
+        return {email: data.username, role: data.roles.includes("ADMIN") ? "admin": "user"};
+
+}
 export default class AuthServiceJwt implements AuthService {
     constructor(private url: string){}
+    async addNewUser(loginData: LoginData): Promise<UserData> {
+        const serverLoginData:any = {};
+        serverLoginData.username = loginData.email;
+        serverLoginData.password = loginData.password;
+        serverLoginData.roles = ["USER"];
+        serverLoginData.nickname = loginData.nickname;
+        serverLoginData.blocked = 0;
+        serverLoginData.avatar = loginData.avatar;
+        const response = await fetch(this.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(serverLoginData)
+           });
+       
+        return response.ok ? getSignUpData(await response.json()) : null;
+    }
     getAvailableProvider(): { providerName: string; providerIconUrl: string; }[] {
         return [];
     }
@@ -19,7 +41,7 @@ export default class AuthServiceJwt implements AuthService {
         const serverLoginData:any = {}; 
         serverLoginData.username = loginData.email;
         serverLoginData.password = loginData.password;
-       const response = await fetch(this.url, {
+       const response = await fetch(this.url + "/login", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

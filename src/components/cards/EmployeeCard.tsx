@@ -1,9 +1,9 @@
 import { Button, Card, CardActions, CardContent, Typography } from "@mui/material"
-import Employee from "../../model/Employee"
+import Contact from "../../model/Contact"
 import { useSelectorAuth } from "../../redux/store";
 import { getISODateStr } from "../../util/date-functions";
 type Props = {
-    employee: Employee;
+    employee: Contact;
     actionFn: (isDelete: boolean) => void
 }
 const EmployeeCard: React.FC<Props> = ({employee, actionFn}) => {

@@ -3,6 +3,9 @@ import UserData from "../../model/UserData";
 import AuthService from "./AuthService";
 
 export  default class AuthserviceFake implements AuthService {
+    addNewUser(loginData: LoginData): Promise<UserData> {
+        throw new Error("Method not implemented.");
+    }
     getAvailableProvider(): { providerName: string; providerIconUrl: string; }[] {
         return [];
     }

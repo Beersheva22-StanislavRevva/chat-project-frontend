@@ -23,9 +23,22 @@ export function getRandomEmployee(minSalary, maxSalary, minYear, maxYear, depart
     +String(getRandomInt(1, 13))+"-"+String(getRandomInt(1, 32)));
     const salary = Math.round(getRandomInt(minSalary, maxSalary) / 1000) * 1000;
     const department = getRandomElement(departments);
+    const username = "";
+    const roles = [];
+    const passwordHash = "";
+    const nickname = "";
+    const blocked = 0;
+    const avatar = "";
+
     return {
         birthDate, name, department,
-        salary, gender};
+        salary, gender,
+        username,
+        roles,
+        passwordHash,
+        nickname,
+        blocked,
+        avatar};
 }
 export function getRandomMatrix(rows, columns, min, max) {
     return Array.from({length:rows}).map(() => getRandomArrayIntNumbers(columns, min, max))

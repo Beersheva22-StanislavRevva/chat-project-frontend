@@ -1,16 +1,16 @@
 import { StatisticsType } from "../../components/common/Statistics";
-import Employee from "../../model/Employee";
+import Contact from "../../model/Contact";
 import { getAge } from "../../util/date-functions";
 import { count } from "../../util/number-functions";
 
-export function getStatistics(employees: Employee[], type: string, interval: number): StatisticsType {
+export function getStatistics(employees: Contact[], type: string, interval: number): StatisticsType {
     
     if (type === 'age') {
         employees = getEmployeesAges(employees);
     }
     return distribution(count(employees, type, interval), interval);
 }
-function getEmployeesAges(employees: Employee[]):any[]  {
+function getEmployeesAges(employees: Contact[]):any[]  {
     return employees.map(e => ({age: getAge(e.birthDate)}));
 }
 function distribution(countsObj: any, interval: number ): StatisticsType {

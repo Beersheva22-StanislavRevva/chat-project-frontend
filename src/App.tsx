@@ -10,7 +10,7 @@ import routesConfig from './config/routes-config.json';
 import NotFound from "./components/pages/NotFound";
 import { RouteType } from "./components/navigators/Navigator";
 import UserData from "./model/UserData";
-import Employees from "./components/pages/Employees";
+import Contacts from "./components/pages/Contacts";
 import AddEmployee from "./components/pages/AddEmployee";
 import AgeStatistics from "./components/pages/AgeStatistics";
 import SalaryStatistics from "./components/pages/SalaryStatistics";
@@ -23,6 +23,7 @@ import { Alert, Snackbar } from "@mui/material";
 import { codeActions } from "./redux/slices/codeSlice";
 import Generation from "./components/pages/Generation";
 import process from "process";
+import SignUp from "./components/pages/SignUp";
 const {always, authenticated, admin, noadmin, noauthenticated} = routesConfig;
 type RouteTypeOrder = RouteType & {order?: number}
 function getRoutes(userData: UserData): RouteType[] {
@@ -77,13 +78,14 @@ const App: React.FC = () => {
   return <BrowserRouter>
   <Routes>
     <Route path="/" element={<NavigatorDispatcher routes={routes}/>}>
-        <Route index element={<Employees/>}/>
+        <Route index element={<Contacts/>}/>
         <Route path="employees/add" element={<AddEmployee/>}/>
         <Route path="statistics/age" element={<AgeStatistics/>}/>
         <Route path="statistics/salary" 
         element={<SalaryStatistics/>}/>
         
         <Route path="signin" element={<SignIn/>}/>
+        <Route path="signup" element={<SignUp/>}/>
         <Route path="signout" element={<SignOut/>}/>
         <Route path="generation" element={<Generation/>}/>
         <Route path="/*" element={<NotFound/>}/>
