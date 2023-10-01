@@ -3,7 +3,8 @@ import Contact from "../../model/Contact";
 import { AUTH_DATA_JWT } from "../auth/AuthServiceJwt";
 import EmployeesService from "./ContactsService";
 import ResponseObj from "../../model/ResponseObj";
-
+import UserData from "../../model/UserData";
+const AUTH_ITEM = "auth-item";
 
 async function getResponseText(response: Response): Promise<string> {
     let res = '';
@@ -71,14 +72,15 @@ export default class EmployeesServiceRest implements EmployeesService {
     private urlService:string;
     private urlWebsocket:string;
     private webSocket: WebSocket | undefined;
-    private employees: Map <string, Contact>;
+    private contacts: Map <string, Contact>;
     private activeContacts:[] = [];
     constructor( baseUrl: string) { 
         this.urlService = `http://${baseUrl}`;
-        this.urlWebsocket = `ws://${baseUrl}/messages/websocket`;
+        this.urlWebsocket = `ws://${baseUrl}users/websocket/`;
+        this.contacts = new Map <string, Contact>
         
-        this.employees = new Map <string, Contact>;
     }
+   
     async updateEmployee(empl: Contact): Promise<Contact> {
         const response = await fetchRequest(this.getUrlWithId(empl.id!),
             { method: 'PUT' }, empl);
@@ -93,7 +95,7 @@ export default class EmployeesServiceRest implements EmployeesService {
         
         fetchAllContacts(this.urlService).then(cont => {
             (cont as Contact[]).forEach(e => {
-                this.employees.set(e.id = e.username, e);
+                this.contacts.set(e.id = e.username, e);
             })
             this.subscriber?.next(cont);
             })
@@ -116,12 +118,17 @@ export default class EmployeesServiceRest implements EmployeesService {
         return this.observable;
     }
     private connectWS() {
-        this.webSocket = new WebSocket(this.urlWebsocket, localStorage.getItem(AUTH_DATA_JWT) || '');
-        this.webSocket.onmessage = message => {
+        const usernameStr = localStorage.getItem(AUTH_ITEM);
+        let username:UserData;
+        usernameStr? username = JSON.parse(usernameStr) : username = null ;
+        if (localStorage.getItem(AUTH_ITEM)){
+            this.webSocket = new WebSocket(this.urlWebsocket+JSON.parse(localStorage.getItem(AUTH_ITEM)|| "").email, localStorage.getItem(AUTH_DATA_JWT) || '');
+            this.webSocket.onmessage = message => {
             console.log(message.data);
             this.subscriberNext();
             
         }
+        }   
     }
     private disconnectWS(): void {
        this.webSocket?.close();
@@ -140,16 +147,16 @@ export default class EmployeesServiceRest implements EmployeesService {
     private editEmployeesMap(responseObj: ResponseObj) {
        switch (responseObj.task) {
         case "add":
-           this.employees.set(responseObj.employee.id, responseObj.employee);
+           this.contacts.set(responseObj.employee.id, responseObj.employee);
            break;
         case "delete":
-            this.employees.delete(responseObj.employee.id);
+            this.contacts.delete(responseObj.employee.id);
             break;
         case "update":
-            this.employees.delete(responseObj.employee.id);
-            this.employees.set(responseObj.employee.id, responseObj.employee);
+            this.contacts.delete(responseObj.employee.id);
+            this.contacts.set(responseObj.employee.id, responseObj.employee);
             break;
         }
-        this.subscriber?.next(Array.from(this.employees.values()));
+        this.subscriber?.next(Array.from(this.contacts.values()));
     }
 }
