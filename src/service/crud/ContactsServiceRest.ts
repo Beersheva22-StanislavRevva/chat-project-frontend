@@ -4,6 +4,7 @@ import { AUTH_DATA_JWT } from "../auth/AuthServiceJwt";
 import EmployeesService from "./ContactsService";
 import ResponseObj from "../../model/ResponseObj";
 import UserData from "../../model/UserData";
+import ChatMessage from "../../model/ChatMessage";
 const AUTH_ITEM = "auth-item";
 
 async function getResponseText(response: Response): Promise<string> {
@@ -61,6 +62,15 @@ async function fetchAllContacts(url: string):Promise< Contact[]|string> {
     return res;
 }
 
+async function fetchMessagesByContact(url: string, username: string, contactname: string):Promise< ChatMessage[]|string> {
+    let response = await fetchRequest(url+"messages/from/"+ username + "/to/" + contactname, {});
+    let res = await response.json() as [];
+    response = await fetchRequest(url+"messages/from/"+ contactname + "/to/" + username, {});
+    const tmp = await response.json() as [];
+    tmp.forEach(el => res.push(el));
+    return res;
+}
+
 async function fetchActiveContacts(url: string):Promise<[]> {
     const response = await fetchRequest(url, {});
     return await response.json()
@@ -80,6 +90,19 @@ export default class EmployeesServiceRest implements EmployeesService {
         this.contacts = new Map <string, Contact>
         
     }
+    sendNewMessage(message: ChatMessage): void {
+        this.webSocket?.send(JSON.stringify(message));
+    }
+     async getMessages(username: string, id: string): Promise<ChatMessage[] | string> {
+        let res: string | ChatMessage[];
+        try {
+            res = await fetchMessagesByContact (this.urlService, username, id);
+        } catch (error) {
+            throw error;
+        }
+        return res;
+    }
+    
    
     async updateEmployee(empl: Contact): Promise<Contact> {
         const response = await fetchRequest(this.getUrlWithId(empl.id!),

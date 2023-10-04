@@ -15,6 +15,7 @@ const AddEmployee: React.FC = () => {
         try {
             const employee: Contact = await contactsService.addEmployee(empl);
             successMessage = `employee with id: ${employee.id} has been added`
+            
         } catch (error: any) {
            errorMessage = error;
         }
