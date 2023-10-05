@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Contact from "../model/Contact";
 import { Subscription } from "rxjs";
 import { contactsService } from "../config/service-config";
+import ChatMessage from "../model/ChatMessage";
 
 export function useDispatchCode() {
     const dispatch = useDispatch();
@@ -32,12 +33,12 @@ export function useSelectorContacts() {
 
         const subscription: Subscription = contactsService.getContacts()
             .subscribe({
-                next(emplArray: Contact[] | string) {
+                next(contArray: Contact[] | string) {
                     let errorMessage: string = '';
-                    if (typeof emplArray === 'string') {
-                        errorMessage = emplArray;
+                    if (typeof contArray === 'string') {
+                        errorMessage = contArray;
                     } else {
-                        setContacts(emplArray.map(e => ({ ...e, birthDate: new Date(e.birthDate) })));
+                        setContacts(contArray.map(e => ({ ...e, birthDate: new Date(e.birthDate) })));
                     }
                     dispatch(errorMessage, '');
 
@@ -46,4 +47,27 @@ export function useSelectorContacts() {
         return () => subscription.unsubscribe();
     }, []);
     return contacts;
+}
+export function useSelectorMessages(username:string, contact:string) {
+    const dispatch = useDispatchCode();
+   
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    
+    useEffect(() => {
+        const subscriptionMsg: Subscription = contactsService.getMessages(username, contact)
+            .subscribe({
+                next(msgArray: ChatMessage[] | string) {
+                    let errorMessage: string = '';
+                    if (typeof msgArray === 'string') {
+                        errorMessage = msgArray;
+                    } else {
+                        setMessages(msgArray);
+                    }
+                    dispatch(errorMessage, '');
+
+                }
+            });
+        return () => subscriptionMsg.unsubscribe();
+    }, []);
+    return messages;
 }

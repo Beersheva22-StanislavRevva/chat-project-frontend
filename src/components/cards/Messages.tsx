@@ -6,19 +6,28 @@ import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 
 import Contact from "../../model/Contact";
 import {AddBoxOutlined, CancelPresentationOutlined, FileDownloadOutlined, IosShareOutlined } from "@mui/icons-material";
+import { useSelectorMessages } from "../../hooks/hooks";
+import { CONTACT_ID } from "../pages/Contacts";
 
 type Props = {
-    messages: ChatMessage[];
+    initialMessages: ChatMessage[];
     contact: Contact;
     actionFn: () => void;
     sendNewMessageFn: () => void
 }
 
-const Message: React.FC<Props> = ({messages, contact, actionFn, sendNewMessageFn}) => {
+const Message: React.FC<Props> = ({initialMessages, contact, actionFn, sendNewMessageFn}) => {
     const userData = useSelectorAuth();
-    const showMessages = messages.map(el => {
-     el.from == contact.nickname ? el.direction = "IN" : el.direction = "OUT"
+    const messages = useSelectorMessages(userData?.email as string, contact.username as string);
+    
+    
+    //initialMessages.sort((a,b) => (new Date(b.dateTime) as any) - (new Date(a.dateTime) as any));
+    
+    const showMessages = messages.length == 0 ? initialMessages.map(el => {
+     el.from == contact.username ? el.direction = "IN" : el.direction = "OUT"}) : messages.map(el => {
+          el.from == contact.username ? el.direction = "IN" : el.direction = "OUT"
     })
+   
     const columnsCommon: GridColDef[] = [
      {
           field: 'direction', headerName: '', flex: 0.5, headerClassName: 'data-grid-header',
@@ -45,10 +54,11 @@ const Message: React.FC<Props> = ({messages, contact, actionFn, sendNewMessageFn
       },
       {
           field: 'dateTime', headerName: 'Date&Time', flex: 0.5, headerClassName: 'data-grid-header',
-          align: 'center', headerAlign: 'center'
+          align: 'center', headerAlign: 'center', sortable: true ,sortingOrder: ['desc']
       },
      
     ];
+
 
 
       return <Box sx={{ height: '80vh', width: '80vw' }}>
@@ -59,7 +69,7 @@ const Message: React.FC<Props> = ({messages, contact, actionFn, sendNewMessageFn
            <Box sx={{ height: '10vh', width: 'auto', textAlign: 'center', fontSize: '1.5em' }} >
             {`History of correspondence with ${contact.nickname}`}
         </Box>
-      <DataGrid columns={columnsCommon} rows={messages} />
+      <DataGrid columns={columnsCommon} rows = {messages.length == 0 ? initialMessages : messages} />
   </Box>
     }
     export default Message;

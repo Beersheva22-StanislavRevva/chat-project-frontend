@@ -5,6 +5,7 @@ import EmployeesService from "./ContactsService";
 import ResponseObj from "../../model/ResponseObj";
 import UserData from "../../model/UserData";
 import ChatMessage from "../../model/ChatMessage";
+import { CONTACT_ID } from "../../components/pages/Contacts";
 const AUTH_ITEM = "auth-item";
 
 async function getResponseText(response: Response): Promise<string> {
@@ -78,7 +79,9 @@ async function fetchActiveContacts(url: string):Promise<[]> {
 
 export default class EmployeesServiceRest implements EmployeesService {
     private observable: Observable<Contact[] | string> | null = null;
+    private observableMessage: Observable<ChatMessage[] | string> | null = null;
     private subscriber: Subscriber <string | Contact[] > | undefined;
+    private subscriberMessage: Subscriber <string | ChatMessage[] > | undefined;
     private urlService:string;
     private urlWebsocket:string;
     private webSocket: WebSocket | undefined;
@@ -90,10 +93,11 @@ export default class EmployeesServiceRest implements EmployeesService {
         this.contacts = new Map <string, Contact>
         
     }
+    
     sendNewMessage(message: ChatMessage): void {
         this.webSocket?.send(JSON.stringify(message));
     }
-     async getMessages(username: string, id: string): Promise<ChatMessage[] | string> {
+     async getMessages1(username: string, id: string): Promise<ChatMessage[] | string> {
         let res: string | ChatMessage[];
         try {
             res = await fetchMessagesByContact (this.urlService, username, id);
@@ -102,8 +106,18 @@ export default class EmployeesServiceRest implements EmployeesService {
         }
         return res;
     }
+    getMessages(username: string, id: string): Observable<ChatMessage[] | string> {
+        if (this.observableMessage) {
+            this.observableMessage = null;
+        }
+            this.observableMessage = new Observable<ChatMessage[] | string>(subscriber => {
+                this.subscriberMessage = subscriber;
+                id && this.subscriberMessageNext(username, id);
+            })
+        
+        return this.observableMessage;
+    }
     
-   
     async updateEmployee(empl: Contact): Promise<Contact> {
         const response = await fetchRequest(this.getUrlWithId(empl.id!),
             { method: 'PUT' }, empl);
@@ -123,6 +137,13 @@ export default class EmployeesServiceRest implements EmployeesService {
             this.subscriber?.next(cont);
             })
         .catch(error => this.subscriber?.next(error));
+    }
+
+    subscriberMessageNext(username: string, id: string): void {
+        fetchMessagesByContact(this.urlService, username, id).then(msg => {
+            (msg as ChatMessage[]).sort((a,b) => (new Date(b.dateTime) as any) - (new Date(a.dateTime) as any));
+            this.subscriberMessage?.next(msg);
+        }).catch(error => this.subscriberMessage?.next(error));
     }
     async deleteEmployee(id: any): Promise<void> {
             await fetchRequest(this.getUrlWithId(id), {
@@ -144,13 +165,15 @@ export default class EmployeesServiceRest implements EmployeesService {
         const usernameStr = localStorage.getItem(AUTH_ITEM);
         let username:UserData;
         usernameStr? username = JSON.parse(usernameStr) : username = null ;
-        if (localStorage.getItem(AUTH_ITEM)){
+        if (localStorage.getItem(AUTH_ITEM)) {
             this.webSocket = new WebSocket(this.urlWebsocket+JSON.parse(localStorage.getItem(AUTH_ITEM)|| "").email, localStorage.getItem(AUTH_DATA_JWT) || '');
             this.webSocket.onmessage = message => {
-            console.log(message.data);
-            this.subscriberNext();
-            
-        }
+                console.log(message.data);  
+                this.subscriberNext();
+                if (username?.email != null  && localStorage.getItem(CONTACT_ID)!=null) {
+                    this.subscriberMessageNext(username.email, localStorage.getItem(CONTACT_ID) as string);
+                }
+             }
         }   
     }
     private disconnectWS(): void {

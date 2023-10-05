@@ -11,12 +11,13 @@ import { useSelectorAuth } from "../../redux/store";
 import { Confirmation } from "../common/Confirmation";
 import { EmployeeForm } from "../forms/EmployeeForm";
 import InputResult from "../../model/InputResult";
-import { useDispatchCode, useSelectorContacts } from "../../hooks/hooks";
+import { useDispatchCode, useSelectorContacts, useSelectorMessages } from "../../hooks/hooks";
 import EmployeeCard from "../cards/EmployeeCard";
 import ChatMessage from "../../model/ChatMessage";
 import { error } from "console";
 import Messages from "../cards/Messages";
 import NewMessageForm from "../forms/NewMessageForm";
+export const CONTACT_ID = 'contact-id';
 
    const columnsCommon: GridColDef[] = [
     {
@@ -47,7 +48,7 @@ const style = {
     alignContent: 'center'
 };
 
-const Employees: React.FC = () => {
+const Contacts: React.FC = () => {
     const columnsActions: GridColDef[] = [
         {
             field: 'actions', type: "actions", getActions: (params) => {
@@ -86,6 +87,7 @@ const Employees: React.FC = () => {
     const [openMessages, setFlOpenMessages] = useState(false);
     const [openNewMessage, setFlOpenNewMessage] = useState(false);   
     
+   // let initialMessages:ChatMessage[] | string = [];
     
     function getColumns(): GridColDef[] {
         
@@ -99,13 +101,18 @@ const Employees: React.FC = () => {
         return res;
     }
     async function showMessages() {
-        const username = userData?.email || "";
-       let currentMessages = await getCurrentMessages(username, contactId.current) || [];
-      if (typeof currentMessages != 'string' ) {
-        changeUsernametoNick(currentMessages);
-        sortMessagesByDate(currentMessages);
-       }
-       setMessages(currentMessages);
+    
+    localStorage.setItem(CONTACT_ID, contactId.current);
+
+    const initialMessages = await contactsService.getMessages1(userData?.email as string, contactId.current);
+    sortMessagesByDate(initialMessages as ChatMessage[]);
+    setMessages(initialMessages);
+
+    //   if (typeof currentMessages != 'string' && currentMessages.length != 0) {
+    //     changeUsernametoNick(currentMsgs);
+        
+    //    }
+    //    setMessages(currentMsgs);
        setFlOpenNewMessage(false);
        setFlOpenMessages(true);
     }
@@ -121,17 +128,18 @@ const Employees: React.FC = () => {
     
     function sendNewMessage() {
         setFlOpenMessages(false);
+        localStorage.removeItem(CONTACT_ID);
         setFlOpenNewMessage(true);
     }
-    async function getCurrentMessages(username:string, contactName:string) {
-        let res: ChatMessage[] | string = "";
-        try {
-        res =  await contactsService.getMessages(username, contactName);
-        } catch(error) {
-          throw error;
-        }
-        return res;
-    }
+    // async function getCurrentMessages(username:string, contactName:string) {
+    //     let res: ChatMessage[] | string = "";
+    //     try {
+    //     res = useSelectorMessages(username, contactName);
+    //     } catch(error) {
+    //       throw error;
+    //     }
+    //     return res;
+    // }
     async function actualRemove(isOk: boolean) {
         let errorMessage: string = '';
         if (isOk) {
@@ -180,6 +188,7 @@ const Employees: React.FC = () => {
         setFlDetails(false)
     }
     function messagesCloseFn() {
+        localStorage.removeItem(CONTACT_ID);
         setFlOpenMessages(false)
     }
     function newMessageCloseFn() {
@@ -192,11 +201,13 @@ const Employees: React.FC = () => {
             from: username as string,
             to: contactName,
             text: inputText,
-            dateTime: "2023-01-01 00:00:00",
+            dateTime: new Date().toString(),
             readByRecepient: 0
         };
         contactsService.sendNewMessage(message);
         setFlOpenNewMessage(false);
+        showMessages();
+        
     }
 
     return <Box sx={{
@@ -225,7 +236,7 @@ const Employees: React.FC = () => {
             aria-describedby="modal-modal-description"
         >
             <Box sx={style}  >
-                <Messages actionFn={messagesCloseFn} sendNewMessageFn={sendNewMessage} messages={messages as ChatMessage[]} contact={contacts.find(el => el.id == contactId.current) as Contact} />
+                <Messages actionFn={messagesCloseFn} sendNewMessageFn={sendNewMessage} initialMessages={messages as ChatMessage[]} contact={contacts.find(el => el.id == contactId.current) as Contact} />
             </Box>
         </Modal>
         <Modal
@@ -253,4 +264,4 @@ const Employees: React.FC = () => {
 
     </Box>
 }
-export default Employees;
+export default Contacts;
