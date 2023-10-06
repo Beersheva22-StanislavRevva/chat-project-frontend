@@ -66,9 +66,16 @@ const Message: React.FC<Props> = ({initialMessages, contact, actionFn, sendNewMe
                <IconButton onClick={sendNewMessageFn} > <AddBoxOutlined/><div style={{fontSize:'0.8em', marginLeft:'1vw'}}>new message</div></IconButton>
                <IconButton onClick={actionFn} sx={{marginLeft:'2vw'}}> <CancelPresentationOutlined/></IconButton>
           </Box>
-           <Box sx={{ height: '10vh', width: 'auto', textAlign: 'center', fontSize: '1.5em' }} >
-            {`History of correspondence with ${contact.nickname}`}
-        </Box>
+           <Box sx={{ height: '10vh', width: 'auto', textAlign: 'center', fontSize: '1.5em', display: 'flex',
+            flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}} >
+                <Box marginRight={3}>
+                    <img src={contact.avatar} alt="avatar" width="50" height="50"></img>
+                </Box>
+                <Box marginTop={1} fontSize={'0.8em'}>
+                    {`History of correspondence with: ${contact.nickname.toUpperCase()}`}
+                </Box>
+           </Box>
+           
       <DataGrid columns={columnsCommon} rows = {messages.length == 0 ? initialMessages : messages} />
   </Box>
     }

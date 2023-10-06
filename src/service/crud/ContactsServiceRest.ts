@@ -57,9 +57,12 @@ async function fetchAllContacts(url: string):Promise< Contact[]|string> {
     const response = await fetchRequest(url+"users", {});
     let res = await response.json();
     (res as Contact[]).forEach(el => {
-    activeContacts.includes(el.username) ? el.active = "online" :  el.active = "offline";
-    }
-    )
+        if (el.blocked == 0) {
+            activeContacts.includes(el.username) ? el.active = "online" :  el.active = "offline";
+         } else {
+            el.active = "blocked";
+         }
+    })
     return res;
 }
 
@@ -97,7 +100,7 @@ export default class EmployeesServiceRest implements EmployeesService {
     sendNewMessage(message: ChatMessage): void {
         this.webSocket?.send(JSON.stringify(message));
     }
-     async getMessages1(username: string, id: string): Promise<ChatMessage[] | string> {
+     async getMessagesFromDB(username: string, id: string): Promise<ChatMessage[] | string> {
         let res: string | ChatMessage[];
         try {
             res = await fetchMessagesByContact (this.urlService, username, id);
@@ -178,7 +181,24 @@ export default class EmployeesServiceRest implements EmployeesService {
     }
     private disconnectWS(): void {
        this.webSocket?.close();
-    }  
+    }
+    async block(username:string, blocked:number): Promise<void> {
+        const serverRequestData:any = {};
+        serverRequestData.username = username;
+        serverRequestData.blocked = blocked;
+        const response = await fetch(this.urlService + "users/block", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT) || ''}`
+            },
+            body: JSON.stringify(serverRequestData)
+          });
+        //  if(response.ok) {
+        // this.subscriberNext();
+        //  }
+    } 
+
     async addEmployee(empl: Contact): Promise<Contact> {
         if (empl.id == 0) {
             delete empl.id;    
@@ -188,7 +208,6 @@ export default class EmployeesServiceRest implements EmployeesService {
                }, empl)
            ;
            return response.json();
-
     }
     private editEmployeesMap(responseObj: ResponseObj) {
        switch (responseObj.task) {

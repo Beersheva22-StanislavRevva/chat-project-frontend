@@ -38,7 +38,7 @@ export function useSelectorContacts() {
                     if (typeof contArray === 'string') {
                         errorMessage = contArray;
                     } else {
-                        setContacts(contArray.map(e => ({ ...e, birthDate: new Date(e.birthDate) })));
+                        setContacts(contArray);
                     }
                     dispatch(errorMessage, '');
 

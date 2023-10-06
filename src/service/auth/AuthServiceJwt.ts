@@ -1,3 +1,4 @@
+import { CONTACT_ID } from "../../components/pages/Contacts";
 import LoginData from "../../model/LoginData";
 import UserData from "../../model/UserData";
 import AuthService from "./AuthService";
@@ -54,5 +55,6 @@ export default class AuthServiceJwt implements AuthService {
     async logout(): Promise<void> {
        localStorage.removeItem(AUTH_DATA_JWT);
     }
+    
     
 }
