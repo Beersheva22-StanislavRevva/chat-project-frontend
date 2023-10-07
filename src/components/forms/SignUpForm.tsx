@@ -3,12 +3,9 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -17,11 +14,10 @@ import InputResult from '../../model/InputResult';
 import { Alert, Divider, FormControl, FormHelperText, FormLabel, Modal, Radio, RadioGroup, Snackbar } from '@mui/material';
 import { StatusType } from '../../model/StatusType';
 import { NetworkType } from '../../service/auth/AuthService';
-import { BorderAll, Height, HowToRegOutlined } from '@mui/icons-material';
-import { ChangeEvent } from 'react';
-import employeeConfig from '../../config/employee-config.json'
+import {  HowToRegOutlined } from '@mui/icons-material';
+import contactConfig from '../../config/contact-config.json'
 
-const {avatars} = employeeConfig;
+const {avatars} = contactConfig;
 function Copyright(props: any) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>

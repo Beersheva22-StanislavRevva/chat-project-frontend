@@ -1,11 +1,12 @@
 import { Observable, Subscriber } from "rxjs";
 import Contact from "../../model/Contact";
 import { AUTH_DATA_JWT } from "../auth/AuthServiceJwt";
-import EmployeesService from "./ContactsService";
+import ContactsService from "./ContactsService";
 import ResponseObj from "../../model/ResponseObj";
 import UserData from "../../model/UserData";
 import ChatMessage from "../../model/ChatMessage";
 import { CONTACT_ID } from "../../components/pages/Contacts";
+import { INIT_MSG } from "../../components/cards/Messages";
 const AUTH_ITEM = "auth-item";
 
 async function getResponseText(response: Response): Promise<string> {
@@ -24,10 +25,10 @@ function getHeaders(): HeadersInit {
     }
     return res;
 }
-async function fetchRequest(url: string, options: RequestInit, empl?: Contact): Promise<Response> {
+async function fetchRequest(url: string, options: RequestInit, cont?: Contact): Promise<Response> {
     options.headers = getHeaders();
-    if (empl) {
-        options.body = JSON.stringify(empl);
+    if (cont) {
+        options.body = JSON.stringify(cont);
     }
 
     let flUpdate = true;
@@ -80,7 +81,7 @@ async function fetchActiveContacts(url: string):Promise<[]> {
     return await response.json()
 }
 
-export default class EmployeesServiceRest implements EmployeesService {
+export default class ContactsServiceRest implements ContactsService {
     private observable: Observable<Contact[] | string> | null = null;
     private observableMessage: Observable<ChatMessage[] | string> | null = null;
     private subscriber: Subscriber <string | Contact[] > | undefined;
@@ -115,19 +116,19 @@ export default class EmployeesServiceRest implements EmployeesService {
         }
             this.observableMessage = new Observable<ChatMessage[] | string>(subscriber => {
                 this.subscriberMessage = subscriber;
-                id && this.subscriberMessageNext(username, id);
+                const msg: ChatMessage = {
+                    from: "",
+                    text: "",
+                    to: "",
+                    dateTime: ""
+                }
+                
+                id && this.subscriberMessageNext(username, id, msg);
             })
         
         return this.observableMessage;
     }
     
-    async updateEmployee(empl: Contact): Promise<Contact> {
-        const response = await fetchRequest(this.getUrlWithId(empl.id!),
-            { method: 'PUT' }, empl);
-            
-        return await response.json();
-
-    }
     private getUrlWithId(id: any): string {
         return `${this.urlService}/${id}`;
     }
@@ -142,17 +143,23 @@ export default class EmployeesServiceRest implements EmployeesService {
         .catch(error => this.subscriber?.next(error));
     }
 
-    subscriberMessageNext(username: string, id: string): void {
+    subscriberMessageNext(username: string, id: string, message:ChatMessage): void {
+ 
+        
+        let msg: ChatMessage[] = JSON.parse(localStorage.getItem(INIT_MSG) as string);
+        if(localStorage.getItem(CONTACT_ID) == message.from) {
+            msg.unshift(message);
+            localStorage.setItem(INIT_MSG, JSON.stringify(msg));
+            //this.subscriberMessage?.next(msg);
+        }
+
         fetchMessagesByContact(this.urlService, username, id).then(msg => {
             (msg as ChatMessage[]).sort((a,b) => (new Date(b.dateTime) as any) - (new Date(a.dateTime) as any));
             this.subscriberMessage?.next(msg);
         }).catch(error => this.subscriberMessage?.next(error));
+                
     }
-    async deleteEmployee(id: any): Promise<void> {
-            await fetchRequest(this.getUrlWithId(id), {
-                method: 'DELETE',
-            });
-    }
+    
     getContacts(): Observable<Contact[] | string> {
         if (!this.observable) {
             this.observable = new Observable<Contact[] | string>(subscriber => {
@@ -174,7 +181,7 @@ export default class EmployeesServiceRest implements EmployeesService {
                 console.log(message.data);  
                 this.subscriberNext();
                 if (username?.email != null  && localStorage.getItem(CONTACT_ID)!=null) {
-                    this.subscriberMessageNext(username.email, localStorage.getItem(CONTACT_ID) as string);
+                    this.subscriberMessageNext(username.email, localStorage.getItem(CONTACT_ID) as string, message.data);
                 }
              }
         }   
@@ -198,30 +205,4 @@ export default class EmployeesServiceRest implements EmployeesService {
         // this.subscriberNext();
         //  }
     } 
-
-    async addEmployee(empl: Contact): Promise<Contact> {
-        if (empl.id == 0) {
-            delete empl.id;    
-        }
-            const response = await fetchRequest(this.urlService, {
-                method: 'POST',
-               }, empl)
-           ;
-           return response.json();
-    }
-    private editEmployeesMap(responseObj: ResponseObj) {
-       switch (responseObj.task) {
-        case "add":
-           this.contacts.set(responseObj.employee.id, responseObj.employee);
-           break;
-        case "delete":
-            this.contacts.delete(responseObj.employee.id);
-            break;
-        case "update":
-            this.contacts.delete(responseObj.employee.id);
-            this.contacts.set(responseObj.employee.id, responseObj.employee);
-            break;
-        }
-        this.subscriber?.next(Array.from(this.contacts.values()));
-    }
 }

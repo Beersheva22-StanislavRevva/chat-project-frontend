@@ -1,10 +1,21 @@
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom'
 export type RouteType = {
   order: any;
     to: string, label: string
 }
+const MyTheme = {
+    dark: false,
+    colors: {
+      primary: 'red',
+      background: 'Thistle',
+      card: 'rgb(255, 255, 255)',
+      text: 'darkgrey',
+      border: 'rgb(199, 199, 204)',
+      notification: 'rgb(255, 69, 58)',
+    },
+  };
 const Navigator: React.FC<{ routes: RouteType[] }> = ({routes}) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,7 +37,7 @@ const Navigator: React.FC<{ routes: RouteType[] }> = ({routes}) => {
 
     
     return <Box mt={10}>
-        <AppBar sx={{backgroundColor:"gray"}}>
+        <AppBar sx={{backgroundColor:"Thistle"}}>
             <Tabs value={value <routes.length ? value : 0} onChange={onChangeFn}>
                 {getTabs()}       
             </Tabs>

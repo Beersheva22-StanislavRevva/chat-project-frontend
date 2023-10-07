@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavigatorDispatcher from "./components/navigators/NavigatorDispatcher";
-
 import SignIn from "./components/pages/SignIn";
 import SignOut from "./components/pages/SignOut";
 import './App.css'
@@ -11,19 +10,17 @@ import NotFound from "./components/pages/NotFound";
 import { RouteType } from "./components/navigators/Navigator";
 import UserData from "./model/UserData";
 import Contacts from "./components/pages/Contacts";
-import AddEmployee from "./components/pages/AddEmployee";
-import AgeStatistics from "./components/pages/AgeStatistics";
-import SalaryStatistics from "./components/pages/SalaryStatistics";
 import { StatusType } from "./model/StatusType";
 import CodeType from "./model/CodeType";
 import { useDispatch } from "react-redux";
 import { authActions } from "./redux/slices/authSlice";
 import { authService } from "./config/service-config";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar, ThemeProvider, createTheme } from "@mui/material";
 import { codeActions } from "./redux/slices/codeSlice";
-import Generation from "./components/pages/Generation";
 import process from "process";
 import SignUp from "./components/pages/SignUp";
+import { green, purple } from "@mui/material/colors";
+
 const {always, authenticated, admin, noadmin, noauthenticated} = routesConfig;
 type RouteTypeOrder = RouteType & {order?: number}
 function getRoutes(userData: UserData): RouteType[] {
@@ -55,6 +52,18 @@ function getRoutes(userData: UserData): RouteType[] {
   }
   return res
 }
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: purple[500],
+    },
+    secondary: {
+      main: purple[300],
+    },
+  },
+});
+
 const App: React.FC = () => {
   const userData = useSelectorAuth();
   const code = useSelectorCode();
@@ -75,19 +84,14 @@ const App: React.FC = () => {
     
     return res;
   }
-  return <BrowserRouter>
+  return <ThemeProvider theme={theme}>
+  <BrowserRouter>
   <Routes>
     <Route path="/" element={<NavigatorDispatcher routes={routes}/>}>
         <Route index element={<Contacts/>}/>
-        <Route path="employees/add" element={<AddEmployee/>}/>
-        <Route path="statistics/age" element={<AgeStatistics/>}/>
-        <Route path="statistics/salary" 
-        element={<SalaryStatistics/>}/>
-        
         <Route path="signin" element={<SignIn/>}/>
         <Route path="signup" element={<SignUp/>}/>
         <Route path="signout" element={<SignOut/>}/>
-        <Route path="generation" element={<Generation/>}/>
         <Route path="/*" element={<NotFound/>}/>
     </Route>
   </Routes>
@@ -98,5 +102,6 @@ const App: React.FC = () => {
                         </Alert>
                     </Snackbar>
   </BrowserRouter>
+  </ThemeProvider>
 }
 export default App;

@@ -9,13 +9,11 @@ import AddCommentOutlined from '@mui/icons-material/AddCommentOutlined';
 import {AppsOutlined,AppBlockingOutlined } from "@mui/icons-material";
 import { useSelectorAuth } from "../../redux/store";
 import { Confirmation } from "../common/Confirmation";
-import { EmployeeForm } from "../forms/EmployeeForm";
 import InputResult from "../../model/InputResult";
 import { useDispatchCode, useSelectorContacts, useSelectorMessages } from "../../hooks/hooks";
-import EmployeeCard from "../cards/EmployeeCard";
 import ChatMessage from "../../model/ChatMessage";
 import { error } from "console";
-import Messages from "../cards/Messages";
+import Messages, { INIT_MSG } from "../cards/Messages";
 import NewMessageForm from "../forms/NewMessageForm";
 import AdminMessages from "../cards/AdminMessages";
 export const CONTACT_ID = 'contact-id';
@@ -107,13 +105,10 @@ const Contacts: React.FC = () => {
     const columnsPortrait: GridColDef[] = getColumnsFromLandscape();
     const columns = useMemo(() => getColumns(), [userData, contacts, isPortrait]);
     const [openConfirm, setOpenConfirm] = useState(false);
-    const [openEdit, setFlEdit] = useState(false);
-    const [openDetails, setFlDetails] = useState(false);
     const title = useRef('');
     const content = useRef('');
     const contactId = useRef('');
     const confirmFn = useRef<any>(null);
-    const employee = useRef<Contact | undefined>();
     const [messages, setMessages] = useState<ChatMessage[] | string>([]);
     const [openMessages, setFlOpenMessages] = useState(false);
     const [openNewMessage, setFlOpenNewMessage] = useState(false);
@@ -170,57 +165,12 @@ const Contacts: React.FC = () => {
     function sendNewMessage() {
         setFlOpenMessages(false);
         localStorage.removeItem(CONTACT_ID);
+        localStorage.removeItem(INIT_MSG);
         setFlOpenNewMessage(true);
-    }
-    async function actualRemove(isOk: boolean) {
-        let errorMessage: string = '';
-        if (isOk) {
-            try {
-                await contactsService.deleteEmployee(contactId.current);
-            } catch (error: any) {
-                errorMessage = error;
-            }
-        }
-        dispatch(errorMessage, '');
-        setOpenConfirm(false);
-    }
-    function updateEmployee(empl: Contact): Promise<InputResult> {
-        setFlEdit(false)
-        const res: InputResult = { status: 'error', message: '' };
-        if (JSON.stringify(employee.current) != JSON.stringify(empl)) {
-            title.current = "Update Employee object?";
-            employee.current = empl;
-            content.current = `You are going update employee with id ${empl.id}`;
-            confirmFn.current = actualUpdate;
-            setOpenConfirm(true);
-        }
-        return Promise.resolve(res);
-    }
-    async function actualUpdate(isOk: boolean) {
-
-        let errorMessage: string = '';
-
-        if (isOk) {
-            try {
-                await contactsService.updateEmployee(employee.current!);
-            } catch (error: any) {
-                errorMessage = error
-            }
-        }
-        dispatch(errorMessage, '');
-        setOpenConfirm(false);
-
-    }
-    function cardAction(isDelete: boolean) {
-        if (isDelete) {
-            showMessages();
-        } else {
-            setFlEdit(true)
-        }
-        setFlDetails(false)
     }
     function messagesCloseFn() {
         localStorage.removeItem(CONTACT_ID);
+        localStorage.removeItem(INIT_MSG);
         setFlOpenMessages(false);
         setFlOpenAdminMessages(false);
     }
@@ -247,9 +197,13 @@ const Contacts: React.FC = () => {
         display: 'flex', flexDirection: "column",
         alignContent: 'center', justifyContent: 'center'
     }}>
-        <Box sx={{ height: '7vh', width: 'auto', textAlign: 'center', fontSize: '1.2em', display: 'flex',
+        <Box sx={{ height: '7vh', width: 'auto', textAlign: 'center', fontSize: '1.3em', fontWeight:'bold', color:'purple',
+         display: 'flex', flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}} >
+                {`SIMPLE CORPORATE CHAT`}
+        </Box>
+        <Box sx={{ height: '7vh', width: 'auto', textAlign: 'center', fontSize: '1.0em', display: 'flex',
             flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}} >
-                {`Select contact`}
+                {`${contacts.filter(el => el.active == 'online').length} user(s) are online`}
         </Box>
 
         <Box sx={{ height: '80vh', width: 'auto', marginLeft:'10vw', marginRight:'10vw' }}>
@@ -257,16 +211,6 @@ const Contacts: React.FC = () => {
         </Box>
         <Confirmation confirmFn={confirmFn.current} open={openConfirm}
             title={title.current} content={content.current}></Confirmation>
-        <Modal
-            open={openEdit}
-            onClose={() => setFlEdit(false)}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-        >
-            <Box sx={style}>
-                <EmployeeForm submitFn={updateEmployee} employeeUpdated={employee.current} />
-            </Box>
-        </Modal>
         <Modal
             open={openMessages}
             onClose={() => setFlOpenMessages(false)}
@@ -298,16 +242,7 @@ const Contacts: React.FC = () => {
                 <AdminMessages actionFn={messagesCloseFn} initialMessages={messages as ChatMessage[]} contact={contacts.find(el => el.id == contactId.current) as Contact} />
             </Box>
         </Modal>
-        <Modal
-            open={openDetails}
-            onClose={() => setFlDetails(false)}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-        >
-            <Box sx={style}>
-                <EmployeeCard actionFn={cardAction} employee={employee.current!} />
-            </Box>
-        </Modal>
+        
 
 
     </Box>

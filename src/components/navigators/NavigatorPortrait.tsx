@@ -32,7 +32,7 @@ const NavigatorPortrait: React.FC<{routes: RouteType[]}> = ({ routes }) => {
             component={Link} to={i.to} key={i.to}>{i.label}</ListItem>)
     }
     return <Box sx={{ marginTop: { xs: "15vh", sm: "20vh" } }}>
-        <AppBar position="fixed">
+        <AppBar position="fixed" sx={{backgroundColor:"Plum", lightingColor:"Purple"}} >
             <Toolbar><IconButton onClick={toggleOpen} sx={{ color: 'white' }}>
                 <Menu />
             </IconButton>

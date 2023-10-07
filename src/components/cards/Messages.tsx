@@ -7,7 +7,7 @@ import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import Contact from "../../model/Contact";
 import {AddBoxOutlined, CancelPresentationOutlined, FileDownloadOutlined, IosShareOutlined } from "@mui/icons-material";
 import { useSelectorMessages } from "../../hooks/hooks";
-import { CONTACT_ID } from "../pages/Contacts";
+export const INIT_MSG = 'init_msg';
 
 type Props = {
     initialMessages: ChatMessage[];
@@ -19,11 +19,9 @@ type Props = {
 const Message: React.FC<Props> = ({initialMessages, contact, actionFn, sendNewMessageFn}) => {
     const userData = useSelectorAuth();
     const messages = useSelectorMessages(userData?.email as string, contact.username as string);
+    localStorage.setItem(INIT_MSG, JSON.stringify(initialMessages));
     
-    
-    //initialMessages.sort((a,b) => (new Date(b.dateTime) as any) - (new Date(a.dateTime) as any));
-    
-    const showMessages = messages.length == 0 ? initialMessages.map(el => {
+   const showMessages = messages.length == 0 ? initialMessages.map(el => {
      el.from == contact.username ? el.direction = "IN" : el.direction = "OUT"}) : messages.map(el => {
           el.from == contact.username ? el.direction = "IN" : el.direction = "OUT"
     })
@@ -75,7 +73,7 @@ const Message: React.FC<Props> = ({initialMessages, contact, actionFn, sendNewMe
                     {`History of correspondence with: ${contact.nickname.toUpperCase()}`}
                 </Box>
            </Box>
-           
+
       <DataGrid columns={columnsCommon} rows = {messages.length == 0 ? initialMessages : messages} />
   </Box>
     }
